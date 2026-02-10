@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  users User[]
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  displayName  String?
+  avatarUrl    String?
+  fullName     String?
+  title        String?
+  phone        String?
+  address      String?
+  roleId       Int
+  role         Role     @relation(fields: [roleId], references: [id])
+  isActive     Boolean  @default(true)
+  refreshTokens RefreshToken[]
+  student      Student?
+  teacher      Teacher?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Student {
+  id         String   @id @default(uuid()) @db.Uuid
+  firstName  String
+  lastName   String
+  email      String   @unique
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id])
+  classId    String   @db.Uuid
+  class      Class    @relation(fields: [classId], references: [id])
+  gradeLevel String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([lastName])
+  @@index([classId])
+}
+
+model Teacher {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  timetableEntries TimetableEntry[]
+
+  @@index([lastName])
+}
+
+model Class {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  gradeLevel String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students  Student[]
+  timetables Timetable[]
+
+  @@unique([name])
+}
+
+model Timetable {
+  id        String   @id @default(uuid()) @db.Uuid
+  classId   String   @db.Uuid
+  class     Class    @relation(fields: [classId], references: [id])
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries   TimetableEntry[]
+
+  @@index([classId])
+}
+
+model TimetableEntry {
+  id          Int       @id @default(autoincrement())
+  timetableId String    @db.Uuid
+  timetable   Timetable @relation(fields: [timetableId], references: [id])
+  dayOfWeek   DayOfWeek
+  startTime   String
+  endTime     String
+  subject     String
+  room        String?
+  teacherId   Int
+  teacher     Teacher   @relation(fields: [teacherId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([timetableId])
+  @@index([teacherId])
+  @@index([dayOfWeek])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
