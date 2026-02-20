@@ -7,7 +7,7 @@ import type { AuthJwtPayload, RoleName } from "../types/auth";
 import { emitUserCreated } from "../realtime/adminEvents";
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
-const ACCESS_TTL = process.env.JWT_ACCESS_TTL || "15m";
+const ACCESS_TTL = (process.env.JWT_ACCESS_TTL || "15m") as jwt.SignOptions["expiresIn"];
 const REFRESH_TTL_DAYS = Number(process.env.JWT_REFRESH_TTL_DAYS || 30);
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 12);
 

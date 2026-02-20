@@ -20,10 +20,6 @@ export async function createUserAsAdmin(
     throw badRequest("User already exists");
   }
 
-  if (roleName === "admin") {
-    throw badRequest("Admin users must be created via seed or manual insert");
-  }
-
   const role = await prisma.role.findUnique({ where: { name: roleName } });
   if (!role) {
     throw badRequest("Invalid role");

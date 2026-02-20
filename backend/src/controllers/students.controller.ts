@@ -10,6 +10,11 @@ import {
 import { sendSuccess } from "../utils/apiResponse";
 import { badRequest } from "../utils/errors";
 
+function getRouteParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
     const students = await listStudents();
@@ -25,7 +30,10 @@ export async function getById(
   next: NextFunction
 ) {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
+    if (!id) {
+      throw badRequest("Missing student id");
+    }
     const student = await getStudentById(id);
     return sendSuccess(res, { student });
   } catch (error) {
@@ -69,7 +77,10 @@ export async function update(
   next: NextFunction
 ) {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
+    if (!id) {
+      throw badRequest("Missing student id");
+    }
     const student = await updateStudent(id, req.body);
     return sendSuccess(res, { student }, "Student updated");
   } catch (error) {
@@ -83,7 +94,10 @@ export async function remove(
   next: NextFunction
 ) {
   try {
-    const id = req.params.id;
+    const id = getRouteParam(req.params.id);
+    if (!id) {
+      throw badRequest("Missing student id");
+    }
     await deleteStudent(id);
     return sendSuccess(res, { deleted: true }, "Student deleted");
   } catch (error) {
