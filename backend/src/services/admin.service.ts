@@ -3,6 +3,7 @@ import prisma from "../utils/prisma";
 import { badRequest, notFound } from "../utils/errors";
 import type { RoleName } from "../types/auth";
 import { emitUserCreated } from "../realtime/adminEvents";
+import { ensureRole } from "./role.service";
 
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 12);
 
@@ -20,7 +21,7 @@ export async function createUserAsAdmin(
     throw badRequest("User already exists");
   }
 
-  const role = await prisma.role.findUnique({ where: { name: roleName } });
+  const role = await ensureRole(roleName);
   if (!role) {
     throw badRequest("Invalid role");
   }
@@ -58,7 +59,7 @@ export async function createUserAsAdmin(
 }
 
 export async function listUsersByRole(roleName: RoleName) {
-  const role = await prisma.role.findUnique({ where: { name: roleName } });
+  const role = await ensureRole(roleName);
   if (!role) {
     throw badRequest("Invalid role");
   }
@@ -129,7 +130,7 @@ export async function assignTeacherRoleByEmail(email: string) {
     };
   }
 
-  const teacherRole = await prisma.role.findUnique({ where: { name: "teacher" } });
+  const teacherRole = await ensureRole("teacher");
   if (!teacherRole) {
     throw badRequest("Role 'teacher' is not configured");
   }

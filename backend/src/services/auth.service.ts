@@ -5,6 +5,7 @@ import prisma from "../utils/prisma";
 import { badRequest, unauthorized } from "../utils/errors";
 import type { AuthJwtPayload, RoleName } from "../types/auth";
 import { emitUserCreated } from "../realtime/adminEvents";
+import { ensureDefaultRoles, ensureRole } from "./role.service";
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
 const ACCESS_TTL = (process.env.JWT_ACCESS_TTL || "15m") as jwt.SignOptions["expiresIn"];
@@ -38,6 +39,8 @@ function refreshExpiry() {
 }
 
 export async function registerUser(email: string, password: string) {
+  await ensureDefaultRoles();
+
   const normalizedEmail = email.toLowerCase();
 
   const existingUser = await prisma.user.findUnique({
@@ -47,7 +50,7 @@ export async function registerUser(email: string, password: string) {
     throw badRequest("User already exists");
   }
 
-  const role = await prisma.role.findUnique({ where: { name: "student" } });
+  const role = await ensureRole("student");
   if (!role) {
     throw badRequest("Role 'student' is not configured");
   }
