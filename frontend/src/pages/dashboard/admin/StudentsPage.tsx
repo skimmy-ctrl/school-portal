@@ -18,19 +18,6 @@ interface StudentRecord {
   avatar: string;
 }
 
-const mapStudentToRecord = (student: any): StudentRecord => ({
-  id: student.id,
-  name: `${student.firstName} ${student.lastName}`.trim(),
-  email: student.email || '',
-  registrationNumber: student.user?.id ? `STU-${student.user.id}` : `STU-${student.id.slice(0, 8)}`,
-  enrollmentStatus: student.isActive ? 'active' : 'inactive',
-  joinDate: student.createdAt || new Date().toISOString(),
-  gpa: 0,
-  coursesEnrolled: 0,
-  avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(student.email || student.id)}`,
-});
-
-
 export function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'pending' | 'inactive'>('all');

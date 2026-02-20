@@ -439,9 +439,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setProfileOpen(false)}
+                  className="border border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   Cancel
                 </Button>
