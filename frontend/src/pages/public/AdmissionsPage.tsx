@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { PublicFooter } from '../../components/public/PublicFooter';
 import { PublicNavbar } from '../../components/public/PublicNavbar';
@@ -138,12 +139,12 @@ export function AdmissionsPage() {
             <p className="text-primary-800 mb-6">
               Contact our Admissions office for more information and to schedule a campus tour.
             </p>
-            <a
-              href="/contact"
+            <Link
+              to="/contact"
               className="inline-block px-6 py-2 bg-primary-600 text-black rounded-lg hover:bg-primary-700 transition-colors border border-black border-solid"
             >
               Contact Admissions
-            </a>
+            </Link>
           </CardBody>
         </Card>
       </div>

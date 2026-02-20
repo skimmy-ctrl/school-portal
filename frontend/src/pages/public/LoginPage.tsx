@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthLayout } from '../../components/layouts/AuthLayout';
 import Button from '../../components/common/Button';
@@ -95,7 +95,7 @@ export function LoginPage() {
             Use your school portal credentials to sign in.
           </p>
           <p className="text-center text-xs text-gray-500 mt-6">
-            <a href='/signup' className='text-blue-500 hover:text-gray-600 hover:shadow'>Create Account</a> if you haven't.
+            <Link to="/signup" className='text-blue-500 hover:text-gray-600 hover:shadow'>Create Account</Link> if you haven't.
           </p>
         </div>
       </div>

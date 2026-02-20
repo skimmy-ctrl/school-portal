@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import logo from '../../assets/mavade.svg';
 
@@ -35,15 +35,25 @@ export function PublicNavbar({ isLandingPage = false }: PublicNavbarProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="text-[#111827] hover:text-[#6b7280] font-medium transition-colors"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item) =>
+              item.href.startsWith('#') ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="text-[#111827] hover:text-[#6b7280] font-medium transition-colors"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="text-[#111827] hover:text-[#6b7280] font-medium transition-colors"
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </div>
 
           {/* Auth Buttons - Desktop */}
@@ -117,15 +127,25 @@ export function PublicNavbar({ isLandingPage = false }: PublicNavbarProps) {
             className="md:hidden pb-4 border-t border-gray-200"
           >
             <div className="flex flex-col gap-3">
-              {navItems.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="text-gray-700 hover:text-primary-600 px-2 py-2 font-medium"
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) =>
+                item.href.startsWith('#') ? (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="text-gray-700 hover:text-primary-600 px-2 py-2 font-medium"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    className="text-gray-700 hover:text-primary-600 px-2 py-2 font-medium"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
               <div className="flex gap-2 pt-2">
                 <button
                   onClick={() => navigate('/login')}

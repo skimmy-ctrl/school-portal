@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import logo from '../../assets/mavade.svg';
 
 type PublicFooterProps = {
@@ -23,24 +24,24 @@ export function PublicFooter({ showLandingAnchors = false }: PublicFooterProps) 
           <div>
             <h4 className="font-semibold text-slate-900 mb-4">Explore</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href={whyUsHref} className="text-slate-600 hover:text-slate-900 transition-colors">Why Mavade</a></li>
-              <li><a href="/admissions" className="text-slate-600 hover:text-slate-900 transition-colors">Admissions</a></li>
-              <li><a href={requestInfoHref} className="text-slate-600 hover:text-slate-900 transition-colors">Request Info</a></li>
+              <li><Link to={whyUsHref} className="text-slate-600 hover:text-slate-900 transition-colors">Why Mavade</Link></li>
+              <li><Link to="/admissions" className="text-slate-600 hover:text-slate-900 transition-colors">Admissions</Link></li>
+              <li><Link to={requestInfoHref} className="text-slate-600 hover:text-slate-900 transition-colors">Request Info</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-slate-900 mb-4">Community</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="/about" className="text-slate-600 hover:text-slate-900 transition-colors">About Mavade</a></li>
-              <li><a href="/contact" className="text-slate-600 hover:text-slate-900 transition-colors">Contact Us</a></li>
-              <li><a href="/admissions" className="text-slate-600 hover:text-slate-900 transition-colors">Visit Admissions</a></li>
+              <li><Link to="/about" className="text-slate-600 hover:text-slate-900 transition-colors">About Mavade</Link></li>
+              <li><Link to="/contact" className="text-slate-600 hover:text-slate-900 transition-colors">Contact Us</Link></li>
+              <li><Link to="/admissions" className="text-slate-600 hover:text-slate-900 transition-colors">Visit Admissions</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-slate-900 mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="/about" className="text-slate-600 hover:text-slate-900 transition-colors">Our Mission</a></li>
-              <li><a href="/contact" className="text-slate-600 hover:text-slate-900 transition-colors">Support</a></li>
+              <li><Link to="/about" className="text-slate-600 hover:text-slate-900 transition-colors">Our Mission</Link></li>
+              <li><Link to="/contact" className="text-slate-600 hover:text-slate-900 transition-colors">Support</Link></li>
             </ul>
           </div>
         </div>

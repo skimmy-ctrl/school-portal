@@ -43,6 +43,7 @@ function App() {
           <Route path="/admissions" element={<AdmissionsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signin" element={<Navigate to="/login" replace />} />
           <Route path="/signup" element={<SignupPage />} />
 
           {/* Student Dashboard Routes */}

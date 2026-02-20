@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader } from '../../components/common/Card';
 import { PublicFooter } from '../../components/public/PublicFooter';
 import { PublicNavbar } from '../../components/public/PublicNavbar';
@@ -109,12 +110,12 @@ export function AboutPage() {
             <p className="text-primary-800 mb-4">
               Contact our support team for more information about implementing Mavade Portal in your school.
             </p>
-            <a
-              href="/contact"
+            <Link
+              to="/contact"
               className="inline-block px-6 py-2 bg-primary-600 text-black rounded-lg border border-black transition-all duration-300 ease-out hover:bg-primary-700 hover:shadow-md hover:-translate-y-0.5"
             >
               Get in Touch
-            </a>
+            </Link>
           </CardBody>
         </Card>
       </div>
