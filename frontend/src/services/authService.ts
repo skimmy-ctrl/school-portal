@@ -106,11 +106,18 @@ async function request<T>(
     }
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+  } catch {
+    throw new Error(
+      'Unable to reach backend API. Check VITE_API_BASE_URL and backend CORS_ORIGIN.'
+    );
+  }
 
   const contentType = response.headers.get('content-type') || '';
   const payload = contentType.includes('application/json')

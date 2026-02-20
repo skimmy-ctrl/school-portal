@@ -11,11 +11,29 @@ import { errorHandler } from "./middlewares/error.middleware";
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+const rawCorsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+const allowedCorsOrigins = rawCorsOrigin
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
 
 app.use(
   cors({
-    origin: corsOrigin.split(","),
+    origin: (origin, callback) => {
+      // Allow server-to-server and health-check requests without an Origin header.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const normalizedOrigin = origin.replace(/\/+$/, "");
+      if (allowedCorsOrigins.includes(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
