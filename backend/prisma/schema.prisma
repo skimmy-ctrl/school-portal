@@ -28,6 +28,11 @@ enum DayOfWeek {
   SUNDAY
 }
 
+enum SubjectClassLevel {
+  JUNIOR
+  SENIOR
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -38,10 +43,12 @@ model User {
   title        String?
   phone        String?
   address      String?
+  teachingSubjectCodes String[] @default([])
   roleId       Int
   role         Role     @relation(fields: [roleId], references: [id])
   isActive     Boolean  @default(true)
   refreshTokens RefreshToken[]
+  updatedSubjectScores StudentSubjectScore[] @relation("SubjectScoreUpdater")
   student      Student?
   teacher      Teacher?
   createdAt    DateTime @default(now())
@@ -61,9 +68,24 @@ model Student {
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  subjectEnrollments StudentSubjectEnrollment[]
+  subjectScores StudentSubjectScore[]
 
   @@index([lastName])
   @@index([classId])
+}
+
+model StudentSubjectEnrollment {
+  id           Int               @id @default(autoincrement())
+  studentId    String            @db.Uuid
+  student      Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classLevel   SubjectClassLevel
+  subjectCodes String[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([studentId, classLevel])
+  @@index([studentId])
 }
 
 model Teacher {
@@ -126,6 +148,24 @@ model TimetableEntry {
   @@index([timetableId])
   @@index([teacherId])
   @@index([dayOfWeek])
+}
+
+model StudentSubjectScore {
+  id          Int      @id @default(autoincrement())
+  studentId   String   @db.Uuid
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectCode String
+  test1       Int?
+  test2       Int?
+  exam        Int?
+  updatedById Int?
+  updatedBy   User?    @relation("SubjectScoreUpdater", fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, subjectCode])
+  @@index([studentId])
+  @@index([subjectCode])
 }
 
 model RefreshToken {

@@ -1,12 +1,15 @@
 import bcrypt from "bcrypt";
 import prisma from "../utils/prisma";
 import { ensureRole } from "./role.service";
+import { ensureStandardClasses } from "./class.service";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL?.toLowerCase().trim();
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 12);
 
 export async function bootstrapAdminUser() {
+  await ensureStandardClasses();
+
   if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
     return;
   }

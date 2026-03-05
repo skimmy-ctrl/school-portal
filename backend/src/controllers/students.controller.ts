@@ -5,6 +5,7 @@ import {
   getStudentById,
   getStudentByUserId,
   listStudents,
+  getStudentScoresByUserId,
   updateStudent,
 } from "../services/student.service";
 import { sendSuccess } from "../utils/apiResponse";
@@ -53,6 +54,23 @@ export async function getMyRecord(
 
     const student = await getStudentByUserId(req.user.userId);
     return sendSuccess(res, { student });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getMyScores(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.user) {
+      throw badRequest("Missing user context");
+    }
+
+    const scores = await getStudentScoresByUserId(req.user.userId);
+    return sendSuccess(res, { scores });
   } catch (error) {
     return next(error);
   }

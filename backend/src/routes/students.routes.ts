@@ -3,6 +3,7 @@ import {
   create,
   getById,
   getMyRecord,
+  getMyScores,
   list,
   remove,
   update,
@@ -15,6 +16,14 @@ import {
   getStudentSchema,
   updateStudentSchema,
 } from "../validators/student.schemas";
+import {
+  getMySubjectEnrollmentSchema,
+  updateMySubjectEnrollmentSchema,
+} from "../validators/subjectEnrollment.schemas";
+import {
+  getMyEnrollment,
+  updateMyEnrollment,
+} from "../controllers/subjectEnrollment.controller";
 
 const router = Router();
 
@@ -24,6 +33,26 @@ router.get(
   requireAuth(),
   requireRole("student"),
   getMyRecord
+);
+router.get(
+  "/me/scores",
+  requireAuth(),
+  requireRole("student"),
+  getMyScores
+);
+router.get(
+  "/me/enrollment",
+  requireAuth(),
+  requireRole("student"),
+  validate(getMySubjectEnrollmentSchema),
+  getMyEnrollment
+);
+router.put(
+  "/me/enrollment",
+  requireAuth(),
+  requireRole("student"),
+  validate(updateMySubjectEnrollmentSchema),
+  updateMyEnrollment
 );
 router.get(
   "/:id",

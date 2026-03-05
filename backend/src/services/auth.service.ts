@@ -6,6 +6,8 @@ import { badRequest, unauthorized } from "../utils/errors";
 import type { AuthJwtPayload, RoleName } from "../types/auth";
 import { emitUserCreated } from "../realtime/adminEvents";
 import { ensureDefaultRoles, ensureRole } from "./role.service";
+import { ensureStandardClasses } from "./class.service";
+import { ensureStudentProfileForUser } from "./student.service";
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
 const ACCESS_TTL = (process.env.JWT_ACCESS_TTL || "15m") as jwt.SignOptions["expiresIn"];
@@ -40,6 +42,7 @@ function refreshExpiry() {
 
 export async function registerUser(email: string, password: string) {
   await ensureDefaultRoles();
+  await ensureStandardClasses();
 
   const normalizedEmail = email.toLowerCase();
 
@@ -79,6 +82,8 @@ export async function registerUser(email: string, password: string) {
     createdAt: user.createdAt,
     role: user.role.name as RoleName,
   });
+
+  await ensureStudentProfileForUser(user.id, user.email);
 
   const accessToken = signAccessToken({
     userId: user.id,

@@ -5,7 +5,12 @@ import Input from '../../../components/common/Input';
 import Badge from '../../../components/common/Badge';
 import { motion } from 'framer-motion';
 import { getTeacherRoles, setTeacherRole } from '../../../services/teacherRoleService';
-import { assignTeacherByEmail, deleteUserById, fetchUsersByRole } from '../../../services/adminService';
+import {
+  assignSubjectsToTeacher,
+  assignTeacherByEmail,
+  deleteUserById,
+  fetchUsersByRole,
+} from '../../../services/adminService';
 
 interface TeacherRecord {
   id: string;
@@ -20,7 +25,33 @@ interface TeacherRecord {
   totalStudents: number;
   avatar: string;
   isClassTeacher?: boolean;
+  subjectCodes: string[];
 }
+
+const SUBJECT_OPTIONS = [
+  { name: 'English', code: 'ENG' },
+  { name: 'Mathematics', code: 'MTH' },
+  { name: 'Cultural and Creative Art', code: 'CCA' },
+  { name: 'History', code: 'HIS' },
+  { name: 'Yoruba', code: 'YOR' },
+  { name: 'Religious and National Value', code: 'RNV' },
+  { name: 'PreVocational Studies', code: 'PVS' },
+  { name: 'Basic Science and Technology', code: 'BST' },
+  { name: 'Civic Education', code: 'CVE' },
+  { name: 'Christian Religious Knowledge', code: 'CRK' },
+  { name: 'Islamic Religious Knowledge', code: 'IRK' },
+  { name: 'Citizenship and Heritage Study', code: 'CHS' },
+  { name: 'Biology', code: 'BIO' },
+  { name: 'Chemistry', code: 'CHM' },
+  { name: 'Physics', code: 'PHY' },
+  { name: 'Agricultural Science', code: 'AGR' },
+  { name: 'Economics', code: 'ECO' },
+  { name: 'Financial Accounting', code: 'FAC' },
+  { name: 'Commerce', code: 'COM' },
+  { name: 'Literature in English', code: 'LIT' },
+  { name: 'Marketing', code: 'MKT' },
+  { name: 'Government', code: 'GOV' },
+];
 
 // Teachers are loaded from userService; mock data removed
 
@@ -33,6 +64,11 @@ export function TeachersPage() {
   const [teachers, setTeachers] = useState<TeacherRecord[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTeacher, setNewTeacher] = useState({ email: '' });
+  const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherRecord | null>(null);
+  const [selectedSubjectCodes, setSelectedSubjectCodes] = useState<string[]>([]);
+  const [isSavingSubjects, setIsSavingSubjects] = useState(false);
+  const [subjectAssignError, setSubjectAssignError] = useState('');
 
   const refreshTeachers = async () => {
     try {
@@ -49,6 +85,7 @@ export function TeachersPage() {
           joinDate: new Date(u.createdAt).toISOString().split('T')[0],
           classesTeaching: 0,
           totalStudents: 0,
+          subjectCodes: u.teachingSubjectCodes ?? [],
           avatar:
             u.avatarUrl ||
             `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
@@ -64,6 +101,42 @@ export function TeachersPage() {
   useEffect(() => {
     refreshTeachers();
   }, []);
+
+  const openSubjectAssignment = (teacher: TeacherRecord) => {
+    setSelectedTeacher(teacher);
+    setSelectedSubjectCodes(teacher.subjectCodes ?? []);
+    setSubjectAssignError('');
+    setShowSubjectModal(true);
+  };
+
+  const toggleSelectedSubject = (code: string) => {
+    setSelectedSubjectCodes((prev) =>
+      prev.includes(code) ? prev.filter((item) => item !== code) : [...prev, code]
+    );
+  };
+
+  const handleSaveTeacherSubjects = async () => {
+    if (!selectedTeacher) return;
+    setIsSavingSubjects(true);
+    setSubjectAssignError('');
+    try {
+      const updated = await assignSubjectsToTeacher(Number(selectedTeacher.id), selectedSubjectCodes);
+      setTeachers((prev) =>
+        prev.map((teacher) =>
+          teacher.id === String(updated.id)
+            ? { ...teacher, subjectCodes: updated.teachingSubjectCodes }
+            : teacher
+        )
+      );
+      setShowSubjectModal(false);
+      setSelectedTeacher(null);
+      setSelectedSubjectCodes([]);
+    } catch (error) {
+      setSubjectAssignError(error instanceof Error ? error.message : 'Failed to update subjects');
+    } finally {
+      setIsSavingSubjects(false);
+    }
+  };
 
   const handleToggleClassTeacher = (email: string) => {
     const isCurrentlyClassTeacher = teacherRoles[email]?.isClassTeacher;
@@ -231,6 +304,71 @@ export function TeachersPage() {
         </div>
       )}
 
+      {showSubjectModal && selectedTeacher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black opacity-40"
+            onClick={() => setShowSubjectModal(false)}
+          />
+          <div className="relative bg-white rounded-lg w-full max-w-2xl p-6 shadow-lg max-h-[85vh] overflow-hidden">
+            <h3 className="text-lg font-semibold text-gray-900">Assign Subjects</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {selectedTeacher.name} ({selectedTeacher.email})
+            </p>
+
+            <div className="mt-4 max-h-[55vh] overflow-y-auto border border-gray-200 rounded-lg p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {SUBJECT_OPTIONS.map((subject) => {
+                  const isChecked = selectedSubjectCodes.includes(subject.code);
+                  return (
+                    <label
+                      key={subject.code}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md border cursor-pointer transition-colors ${
+                        isChecked
+                          ? 'border-blue-400 bg-blue-50 text-blue-900'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleSelectedSubject(subject.code)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">
+                        {subject.name} <span className="text-gray-500">({subject.code})</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {subjectAssignError ? (
+              <p className="text-sm text-red-600 mt-3">{subjectAssignError}</p>
+            ) : null}
+
+            <div className="flex items-center justify-between mt-4">
+              <p className="text-sm text-gray-600">
+                Selected: <span className="font-semibold">{selectedSubjectCodes.length}</span>
+              </p>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setShowSubjectModal(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => void handleSaveTeacherSubjects()}
+                  disabled={isSavingSubjects}
+                  className="bg-blue-500 text-white"
+                >
+                  {isSavingSubjects ? 'Saving...' : 'Save Subjects'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Teachers List */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
         <Card>
@@ -265,6 +403,22 @@ export function TeachersPage() {
                           <Badge variant="default">{teacher.department}</Badge>
                           <span className="text-xs text-gray-500">{teacher.employeeId}</span>
                         </div>
+                        {teacher.subjectCodes.length > 0 ? (
+                          <div className="flex items-center gap-1 mt-2 flex-wrap">
+                            {teacher.subjectCodes.slice(0, 5).map((code) => (
+                              <Badge key={`${teacher.id}-${code}`} variant="info">
+                                {code}
+                              </Badge>
+                            ))}
+                            {teacher.subjectCodes.length > 5 ? (
+                              <span className="text-xs text-gray-500">
+                                +{teacher.subjectCodes.length - 5} more
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500 mt-2">No subjects assigned</p>
+                        )}
                       </div>
                     </div>
                       <div className="flex flex-col items-end gap-2 shrink-0 ml-4">
@@ -287,9 +441,13 @@ export function TeachersPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-wrap justify-end">
-                        <Button size="sm" variant="secondary" className="whitespace-nowrap">
-                          Edit
-                        </Button>
+                        <button
+                          onClick={() => openSubjectAssignment(teacher)}
+                          className="px-3 py-1.5 rounded-md text-sm bg-indigo-600 text-white hover:bg-indigo-700 whitespace-nowrap"
+                          title="Assign subjects"
+                        >
+                          Assign Subjects
+                        </button>
                         <button
                           onClick={() => handleToggleClassTeacher(teacher.email)}
                           className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-colors ${

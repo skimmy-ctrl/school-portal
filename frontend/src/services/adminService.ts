@@ -17,8 +17,17 @@ export interface AdminUser {
   phone?: string | null;
   address?: string | null;
   avatarUrl?: string | null;
+  teachingSubjectCodes?: string[];
   isActive: boolean;
   createdAt: string;
+  student?: {
+    id: string;
+    class?: {
+      id: string;
+      name: 'JSS1' | 'JSS2' | 'JSS3' | 'SSS1' | 'SSS2' | 'SSS3';
+      gradeLevel?: string | null;
+    } | null;
+  } | null;
 }
 
 export async function fetchUsersByRole(role: 'student' | 'teacher' | 'admin') {
@@ -68,6 +77,64 @@ export async function assignTeacherByEmail(email: string) {
   const payload = (await response.json()) as ApiResponse<{ user: AdminUser }>;
   if (!response.ok) {
     throw new Error(payload?.message || 'Failed to assign teacher role');
+  }
+
+  return payload.data.user;
+}
+
+export async function promoteStudentClassByStudentId(
+  studentId: string,
+  className: 'JSS1' | 'JSS2' | 'JSS3' | 'SSS1' | 'SSS2' | 'SSS3'
+) {
+  const token = getStoredAccessToken();
+  const response = await fetch(`${API_BASE}/api/admin/students/${studentId}/class`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ className }),
+  });
+
+  const payload = (await response.json()) as ApiResponse<{
+    student: {
+      id: string;
+      class: {
+        id: string;
+        name: 'JSS1' | 'JSS2' | 'JSS3' | 'SSS1' | 'SSS2' | 'SSS3';
+      };
+    };
+  }>;
+  if (!response.ok) {
+    throw new Error(payload?.message || 'Failed to promote student');
+  }
+
+  return payload.data.student;
+}
+
+export async function assignSubjectsToTeacher(userId: number, subjectCodes: string[]) {
+  const token = getStoredAccessToken();
+  const response = await fetch(`${API_BASE}/api/admin/teachers/${userId}/subjects`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ subjectCodes }),
+  });
+
+  const payload = (await response.json()) as ApiResponse<{
+    user: {
+      id: number;
+      email: string;
+      teachingSubjectCodes: string[];
+    };
+  }>;
+
+  if (!response.ok) {
+    throw new Error(payload?.message || 'Failed to assign subjects to teacher');
   }
 
   return payload.data.user;

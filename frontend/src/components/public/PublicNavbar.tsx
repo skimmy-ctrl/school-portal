@@ -117,73 +117,61 @@ export function PublicNavbar({ isLandingPage = false }: PublicNavbarProps) {
             </button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="md:hidden pb-4 border-t border-gray-200"
-          >
-            <div className="flex flex-col gap-3">
-              {navItems.map((item) =>
-                item.href.startsWith('#') ? (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="text-gray-700 hover:text-primary-600 px-2 py-2 font-medium"
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    className="text-gray-700 hover:text-primary-600 px-2 py-2 font-medium"
-                  >
-                    {item.label}
-                  </Link>
-                )
-              )}
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => navigate('/login')}
-                  style={{ color: '#0066cc' }}
-                  className="flex-1 font-medium hover:opacity-80 transition-opacity px-3 py-2 border border-primary-600 rounded-lg"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => navigate('/signup')}
-                  style={{
-                    backgroundColor: '#0066cc',
-                    color: 'white',
-                    padding: '0.75rem 1.25rem',
-                    borderRadius: '0.5rem',
-                    fontWeight: 600,
-                    fontSize: '0.95rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 6px rgba(0, 102, 204, 0.2)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0052a3';
-                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 102, 204, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0066cc';
-                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 102, 204, 0.2)';
-                  }}
-                >
-                  Sign Up
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
       </div>
+
+      {/* Mobile Navigation */}
+      {mobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="md:hidden w-full border-t border-gray-200 bg-[#fafafa]"
+        >
+          <div className="w-full">
+            {navItems.map((item) =>
+              item.href.startsWith('#') ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full border-b border-gray-200 px-4 py-3 text-gray-700 font-medium hover:bg-gray-100"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full border-b border-gray-200 px-4 py-3 text-gray-700 font-medium hover:bg-gray-100"
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
+            <div className="p-4 space-y-3 bg-gradient-to-b from-[#fafafa] to-[#f3f4f6]">
+              <button
+                onClick={() => {
+                  navigate('/login');
+                  setMobileMenuOpen(false);
+                }}
+                className="block w-full rounded-xl border border-[#0066cc]/20 bg-white px-4 py-3 text-center font-semibold text-[#0066cc] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => {
+                  navigate('/signup');
+                  setMobileMenuOpen(false);
+                }}
+                className="block w-full rounded-xl bg-gradient-to-r from-[#0066cc] to-[#0052a3] px-4 py-3 text-center font-semibold text-white shadow-[0_8px_24px_rgba(0,102,204,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,102,204,0.34)]"
+              >
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </nav>
   );
 }

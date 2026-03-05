@@ -7,9 +7,11 @@ import studentRoutes from "./routes/students.routes";
 import timetableRoutes from "./routes/timetable.routes";
 import adminRoutes from "./routes/admin.routes";
 import userRoutes from "./routes/user.routes";
+import teacherRoutes from "./routes/teachers.routes";
 import { errorHandler } from "./middlewares/error.middleware";
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
 const rawCorsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
 const allowedCorsOrigins = rawCorsOrigin
@@ -27,6 +29,14 @@ app.use(
       }
 
       const normalizedOrigin = origin.replace(/\/+$/, "");
+      if (
+        !isProduction &&
+        /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(normalizedOrigin)
+      ) {
+        callback(null, true);
+        return;
+      }
+
       if (allowedCorsOrigins.includes(normalizedOrigin)) {
         callback(null, true);
         return;
@@ -47,6 +57,7 @@ app.use("/api/students", studentRoutes);
 app.use("/api/timetables", timetableRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/teachers", teacherRoutes);
 
 app.get("/health", (_, res) => {
   res.json({ status: "ok" });

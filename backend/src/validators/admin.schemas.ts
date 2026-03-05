@@ -20,3 +20,21 @@ export const assignTeacherSchema = z.object({
     email: z.string().email(),
   }),
 });
+
+export const promoteStudentClassSchema = z.object({
+  params: z.object({
+    studentId: z.string().uuid(),
+  }),
+  body: z.object({
+    className: z.enum(["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"]),
+  }),
+});
+
+export const assignTeacherSubjectsSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+  body: z.object({
+    subjectCodes: z.array(z.string().trim().toUpperCase().min(1)).max(20),
+  }),
+});

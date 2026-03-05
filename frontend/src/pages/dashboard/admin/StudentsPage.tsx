@@ -3,13 +3,21 @@ import { Card, CardBody, CardHeader } from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
 import { motion } from 'framer-motion';
-import { deleteUserById, fetchUsersByRole } from '../../../services/adminService';
+import {
+  deleteUserById,
+  fetchUsersByRole,
+  promoteStudentClassByStudentId,
+} from '../../../services/adminService';
 import { getStoredAccessToken } from '../../../services/authService';
+
+type ClassName = 'JSS1' | 'JSS2' | 'JSS3' | 'SSS1' | 'SSS2' | 'SSS3';
 
 interface StudentRecord {
   id: string;
+  studentId?: string;
   name: string;
   email: string;
+  className: ClassName;
   registrationNumber: string;
   enrollmentStatus: 'active' | 'inactive' | 'pending';
   joinDate: string;
@@ -19,11 +27,14 @@ interface StudentRecord {
 }
 
 export function StudentsPage() {
+  const CLASS_OPTIONS: ClassName[] = ['JSS1', 'JSS2', 'JSS3', 'SSS1', 'SSS2', 'SSS3'];
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'pending' | 'inactive'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'gpa' | 'joinDate'>('name');
 
   const [students, setStudents] = useState<StudentRecord[]>([]);
+  const [promotionTargets, setPromotionTargets] = useState<Record<string, ClassName>>({});
+  const [promotingStudentId, setPromotingStudentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
 
@@ -32,21 +43,14 @@ export function StudentsPage() {
     setLoadError('');
     try {
       const data = await fetchUsersByRole('student');
-      setStudents(data.map((user) => ({
-        id: String(user.id),
-        name: user.displayName || user.fullName || user.email,
-        email: user.email,
-        registrationNumber: `STU-${user.id}`,
-        enrollmentStatus: user.isActive ? 'active' : 'inactive',
-        joinDate: user.createdAt,
-        gpa: 0,
-        coursesEnrolled: 0,
-        avatar:
-          user.avatarUrl ||
-          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-            user.email
-          )}`,
-      })));
+      const mapped: StudentRecord[] = data.map(mapUserToStudentRecord);
+      setStudents(mapped);
+      setPromotionTargets(
+        mapped.reduce<Record<string, ClassName>>((acc, student) => {
+          acc[student.id] = student.className;
+          return acc;
+        }, {})
+      );
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Failed to load students.');
     } finally {
@@ -71,41 +75,20 @@ export function StudentsPage() {
       try {
         const message = JSON.parse(event.data as string);
         if (message.type === 'users' && Array.isArray(message.payload)) {
-          const mapped = message.payload.map((user: any) => ({
-            id: String(user.id),
-            name: user.displayName || user.fullName || user.email,
-            email: user.email,
-            registrationNumber: `STU-${user.id}`,
-            enrollmentStatus: user.isActive ? 'active' : 'inactive',
-            joinDate: user.createdAt,
-            gpa: 0,
-            coursesEnrolled: 0,
-            avatar:
-              user.avatarUrl ||
-              `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-                user.email
-              )}`,
-          }));
+          const mapped: StudentRecord[] = message.payload.map(mapUserToStudentRecord);
           setStudents(mapped);
+          setPromotionTargets(
+            mapped.reduce<Record<string, ClassName>>((acc, student) => {
+              acc[student.id] = student.className;
+              return acc;
+            }, {})
+          );
         }
         if (message.type === 'userCreated' && message.payload) {
           const user = message.payload;
-          const mapped = {
-            id: String(user.id),
-            name: user.displayName || user.fullName || user.email,
-            email: user.email,
-            registrationNumber: `STU-${user.id}`,
-            enrollmentStatus: user.isActive ? 'active' : 'inactive',
-            joinDate: user.createdAt,
-            gpa: 0,
-            coursesEnrolled: 0,
-            avatar:
-              user.avatarUrl ||
-              `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
-                user.email
-              )}`,
-          } as StudentRecord;
+          const mapped = mapUserToStudentRecord(user);
           setStudents((prev) => [mapped, ...prev]);
+          setPromotionTargets((prev) => ({ ...prev, [mapped.id]: mapped.className }));
         }
       } catch (_error) {
         // ignore
@@ -354,6 +337,7 @@ export function StudentsPage() {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Student</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Registration</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Class</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">GPA</th>
                       <th className="text-center py-3 px-4 font-semibold text-gray-700">Courses</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Joined</th>
@@ -387,6 +371,58 @@ export function StudentsPage() {
                           >
                             {getStatusIcon(student.enrollmentStatus)} {student.enrollmentStatus.charAt(0).toUpperCase() + student.enrollmentStatus.slice(1)}
                           </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={promotionTargets[student.id] || student.className}
+                              onChange={(e) =>
+                                setPromotionTargets((prev) => ({
+                                  ...prev,
+                                  [student.id]: e.target.value as ClassName,
+                                }))
+                              }
+                              className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                            >
+                              {CLASS_OPTIONS.map((classOption) => (
+                                <option key={classOption} value={classOption}>
+                                  {classOption}
+                                </option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={async () => {
+                                if (!student.studentId) {
+                                  setLoadError('Student profile missing for this user.');
+                                  return;
+                                }
+
+                                const targetClass = promotionTargets[student.id] || student.className;
+                                if (targetClass === student.className) {
+                                  return;
+                                }
+
+                                try {
+                                  setPromotingStudentId(student.id);
+                                  const updated = await promoteStudentClassByStudentId(student.studentId, targetClass);
+                                  setStudents((prev) =>
+                                    prev.map((item) =>
+                                      item.id === student.id ? { ...item, className: updated.class.name } : item
+                                    )
+                                  );
+                                  setPromotionTargets((prev) => ({ ...prev, [student.id]: updated.class.name }));
+                                } catch (error) {
+                                  setLoadError(error instanceof Error ? error.message : 'Failed to update class.');
+                                } finally {
+                                  setPromotingStudentId(null);
+                                }
+                              }}
+                              disabled={promotingStudentId === student.id}
+                              className="text-primary-600 hover:text-primary-700 font-medium text-sm disabled:opacity-50"
+                            >
+                              {promotingStudentId === student.id ? 'Updating...' : 'Promote'}
+                            </button>
+                          </div>
                         </td>
                         <td className="py-4 px-4 text-center">
                           {student.gpa > 0 ? (
@@ -454,3 +490,20 @@ export function StudentsPage() {
     </div>
   );
 }
+  const mapUserToStudentRecord = (user: any): StudentRecord => ({
+    id: String(user.id),
+    studentId: user.student?.id,
+    name: user.displayName || user.fullName || user.email,
+    email: user.email,
+    className: (user.student?.class?.name || 'JSS1') as ClassName,
+    registrationNumber: `STU-${user.id}`,
+    enrollmentStatus: (user.isActive ? 'active' : 'inactive') as StudentRecord['enrollmentStatus'],
+    joinDate: user.createdAt,
+    gpa: 0,
+    coursesEnrolled: 0,
+    avatar:
+      user.avatarUrl ||
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+        user.email
+      )}`,
+  });

@@ -1,8 +1,20 @@
 import { Router } from "express";
-import { assignTeacherRole, createUser, deleteUser, listUsers } from "../controllers/admin.controller";
+import {
+  assignTeacherSubjects,
+  assignTeacherRole,
+  createUser,
+  deleteUser,
+  listUsers,
+  promoteStudentClass,
+} from "../controllers/admin.controller";
 import { requireAuth, requireRole } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validate.middleware";
-import { assignTeacherSchema, createUserSchema } from "../validators/admin.schemas";
+import {
+  assignTeacherSchema,
+  assignTeacherSubjectsSchema,
+  createUserSchema,
+  promoteStudentClassSchema,
+} from "../validators/admin.schemas";
 
 const router = Router();
 
@@ -34,6 +46,22 @@ router.post(
   requireRole("admin"),
   validate(assignTeacherSchema),
   assignTeacherRole
+);
+
+router.patch(
+  "/teachers/:id/subjects",
+  requireAuth(),
+  requireRole("admin"),
+  validate(assignTeacherSubjectsSchema),
+  assignTeacherSubjects
+);
+
+router.patch(
+  "/students/:studentId/class",
+  requireAuth(),
+  requireRole("admin"),
+  validate(promoteStudentClassSchema),
+  promoteStudentClass
 );
 
 export default router;
